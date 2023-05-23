@@ -1,3 +1,6 @@
+import io.hndrs.gradle.plugin.Developer
+import io.hndrs.gradle.plugin.License
+import io.hndrs.gradle.plugin.Organization
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -9,6 +12,7 @@ plugins {
     id("com.gradle.plugin-publish").version("1.2.0")
     kotlin("jvm")
     idea
+    id("io.hndrs.publishing-info").version("3.0.0")
 }
 
 group = "io.hndrs.gradle"
@@ -16,8 +20,6 @@ version = "1.0.0"
 
 java.sourceCompatibility = JavaVersion.VERSION_17
 java.targetCompatibility = JavaVersion.VERSION_17
-
-var publishingInfoPlugin: NamedDomainObjectProvider<PluginDeclaration>? = null
 
 repositories {
     mavenCentral()
@@ -40,6 +42,27 @@ gradlePlugin {
     }
 }
 
+publishingInfo {
+    name = "Gradle git properties plugin"
+    description = "Simple Gradle Git Properties Plugin with gradle configuration-cache support"
+    inceptionYear = "2023"
+    url = "https://github.com/hndrs/gradle-git-properties-plugin"
+    license = License(
+        "https://github.com/hndrs/gradle-git-properties-plugin/blob/main/LICENSE",
+        "MIT License"
+    )
+    developers = listOf(
+        Developer("marvinschramm", "Marvin Schramm", "marvin.schramm@gmail.com")
+    )
+    organization = Organization("hndrs", "https://oss.hndrs.io")
+    scm = io.hndrs.gradle.plugin.Scm(
+        "scm:git:git://github.com/hndrs/gradle-git-properties-plugin",
+        "https://github.com/hndrs/gradle-git-properties-plugin"
+    )
+}
+
+
+
 dependencies {
     testImplementation(gradleTestKit())
     testImplementation(platform("org.junit:junit-bom:5.9.2"))
@@ -52,10 +75,10 @@ dependencies {
 
 sonarqube {
     properties {
-        property("sonar.projectKey", "hndrs_gradle-publishing-info-plugin")
+        property("sonar.projectKey", "hndrs_gradle-git-properties-plugin")
         property("sonar.organization", "hndrs")
         property("sonar.host.url", "https://sonarcloud.io")
-        property("sonar.exclusions", "**/sample/**")
+        property("sonar.exclusions", "**/example/**")
     }
 }
 
