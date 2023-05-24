@@ -67,6 +67,8 @@ publishingInfo {
 
 
 dependencies {
+    implementation("org.eclipse.jgit:org.eclipse.jgit:6.5.0.202303070854-r")
+
     testImplementation(gradleTestKit())
     testImplementation(platform("org.junit:junit-bom:5.9.2"))
     testImplementation("org.junit.jupiter:junit-jupiter")

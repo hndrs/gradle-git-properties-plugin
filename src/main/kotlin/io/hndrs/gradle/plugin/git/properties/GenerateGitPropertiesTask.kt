@@ -1,14 +1,15 @@
 package io.hndrs.gradle.plugin.git.properties
 
-import io.hndrs.gradle.plugin.git.properties.data.BranchNameValueSource
-import io.hndrs.gradle.plugin.git.properties.data.BuildValueSource
-import io.hndrs.gradle.plugin.git.properties.data.LatestCommitValueSource
-import io.hndrs.gradle.plugin.git.properties.data.RemoteOriginValueSource
+import io.hndrs.gradle.plugin.git.properties.data.BuildHostPropertiesProvider
+import io.hndrs.gradle.plugin.git.properties.data.GitBranchPropertiesProvider
+import io.hndrs.gradle.plugin.git.properties.data.GitConfigPropertiesProvider
+import io.hndrs.gradle.plugin.git.properties.data.GitLogPropertiesProvider
+import io.hndrs.gradle.plugin.git.properties.data.GitPropertiesProviderChain
+import org.eclipse.jgit.api.Git
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputFile
@@ -22,7 +23,6 @@ import javax.inject.Inject
 @CacheableTask
 abstract class GenerateGitPropertiesTask @Inject constructor(
     private val objectFactory: ObjectFactory,
-    private val providerFactory: ProviderFactory
 ) : DefaultTask() {
 
     /**
@@ -43,27 +43,26 @@ abstract class GenerateGitPropertiesTask @Inject constructor(
 
     @TaskAction
     fun generateGitProperties() {
-        val fileContent = StringBuilder().apply {
-            getProperties().forEach {
-                appendLine("${it.key}=${it.value}")
-            }
-        }.toString()
+        runCatching {
+            val git = Git.open(dotGitDirectory.asFile.get())
 
-        output.asFile.get().run {
-            this.createNewFile()
-            writeText(fileContent)
+            val properties = GitPropertiesProviderChain.of(
+                BuildHostPropertiesProvider(),
+                GitBranchPropertiesProvider(git),
+                GitConfigPropertiesProvider(git),
+                GitLogPropertiesProvider(git),
+            )
+                .get()
+                .also {
+                    git.close()
+                }
+
+
+            Writer(properties).writeTo(output.asFile.get())
+
+        }.onFailure {
+            logger.error("dasdasd")
         }
-    }
-
-    private fun getProperties(): Map<String, String> {
-        return listOf(
-            providerFactory.of(LatestCommitValueSource::class.java) {}.get(),
-            providerFactory.of(BranchNameValueSource::class.java) {}.get(),
-            providerFactory.of(RemoteOriginValueSource::class.java) {}.get(),
-            providerFactory.of(BuildValueSource::class.java) {}.get()
-        ).flatMap { it.entries }.map {
-            it.toPair()
-        }.toMap()
     }
 
     private fun gitPropertiesFileProperty(): RegularFileProperty {
@@ -75,5 +74,20 @@ abstract class GenerateGitPropertiesTask @Inject constructor(
     companion object {
         private const val BUILD_RESOURCES_PATH = "/resources/main/git.properties"
         private const val DOT_GIT_DIRECTORY_PATH = ".git"
+    }
+}
+
+class Writer(private val properties: Map<String, Any?>) {
+
+    fun writeTo(file: File) {
+        val fileContent = with(StringBuilder()) {
+            properties.forEach {
+                if (!it.value?.toString().isNullOrBlank()) {
+                    appendLine("${it.key}=${it.value}")
+                }
+            }
+            this.toString()
+        }
+        file.writeText(fileContent)
     }
 }
