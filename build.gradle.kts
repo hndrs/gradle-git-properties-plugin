@@ -12,14 +12,11 @@ plugins {
     id("com.gradle.plugin-publish").version("1.2.0")
     kotlin("jvm")
     idea
-    id("io.hndrs.publishing-info").version("3.0.0")
+    id("io.hndrs.publishing-info").version("3.1.0")
 }
 
 group = "io.hndrs.gradle"
 version = "1.0.0"
-
-java.sourceCompatibility = JavaVersion.VERSION_17
-java.targetCompatibility = JavaVersion.VERSION_17
 
 repositories {
     mavenCentral()
@@ -39,6 +36,12 @@ gradlePlugin {
             description = "Generates Git properties and is compatible with gradles `configuration-cache`"
             tags.set(tagList)
         }
+    }
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 
