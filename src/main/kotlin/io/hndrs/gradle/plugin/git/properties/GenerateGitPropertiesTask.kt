@@ -1,6 +1,5 @@
 package io.hndrs.gradle.plugin.git.properties
 
-import io.hndrs.gradle.plugin.git.properties.common.escapeLF
 import io.hndrs.gradle.plugin.git.properties.data.BuildHostPropertiesProvider
 import io.hndrs.gradle.plugin.git.properties.data.GitBranchPropertiesProvider
 import io.hndrs.gradle.plugin.git.properties.data.GitConfigPropertiesProvider
@@ -48,10 +47,10 @@ abstract class GenerateGitPropertiesTask @Inject constructor(
             val git = Git.open(dotGitDirectory.asFile.get())
 
             val properties = GitPropertiesProviderChain.of(
-                BuildHostPropertiesProvider(),
                 GitBranchPropertiesProvider(git),
                 GitConfigPropertiesProvider(git),
                 GitLogPropertiesProvider(git),
+                BuildHostPropertiesProvider(),
             )
                 .get()
                 .also {
@@ -59,7 +58,7 @@ abstract class GenerateGitPropertiesTask @Inject constructor(
                 }
 
 
-            Writer(properties).writeTo(output.asFile.get())
+            PropertiesFileWriter(properties).writeTo(output.asFile.get())
 
         }.onFailure {
             logger.error("dasdasd")
@@ -78,20 +77,3 @@ abstract class GenerateGitPropertiesTask @Inject constructor(
     }
 }
 
-class Writer(private val properties: Map<String, Any?>) {
-
-    fun writeTo(file: File) {
-        val fileContent = with(StringBuilder()) {
-            properties
-                .filter { it.value != null }
-                .map { it.key to it.value.toString().escapeLF() }
-                .forEach {
-                    if (it.second.isNotBlank()) {
-                        appendLine("${it.first}=${it.second}")
-                    }
-                }
-            this.toString()
-        }
-        file.writeText(fileContent)
-    }
-}
