@@ -51,17 +51,14 @@ abstract class GenerateGitPropertiesTask @Inject constructor(
                 GitConfigPropertiesProvider(git),
                 GitLogPropertiesProvider(git),
                 BuildHostPropertiesProvider(),
-            )
-                .get()
-                .also {
-                    git.close()
-                }
-
+            ).get().also {
+                git.close()
+            }
 
             PropertiesFileWriter(properties).writeTo(output.asFile.get())
 
         }.onFailure {
-            logger.error("dasdasd")
+            throw it
         }
     }
 

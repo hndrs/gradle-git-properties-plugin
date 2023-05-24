@@ -7,5 +7,4 @@ plugins {
 
 tasks.withType(GenerateGitPropertiesTask::class.java) {
     dotGitDirectory.set(File("../.git"))
-    output.set(File("build/custom/directory/git.properties"))
 }

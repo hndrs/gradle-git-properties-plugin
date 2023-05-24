@@ -96,6 +96,7 @@ tasks.withType<JacocoReport> {
             this.required.set(true)
         }
     }
+    dependsOn(tasks.withType(Assemble::class.java))
 }
 
 tasks.withType<KotlinCompile> {
