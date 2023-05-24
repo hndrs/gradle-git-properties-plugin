@@ -1,5 +1,6 @@
 package io.hndrs.gradle.plugin.git.properties
 
+import io.hndrs.gradle.plugin.git.properties.common.escapeLF
 import io.hndrs.gradle.plugin.git.properties.data.BuildHostPropertiesProvider
 import io.hndrs.gradle.plugin.git.properties.data.GitBranchPropertiesProvider
 import io.hndrs.gradle.plugin.git.properties.data.GitConfigPropertiesProvider
@@ -81,11 +82,14 @@ class Writer(private val properties: Map<String, Any?>) {
 
     fun writeTo(file: File) {
         val fileContent = with(StringBuilder()) {
-            properties.forEach {
-                if (!it.value?.toString().isNullOrBlank()) {
-                    appendLine("${it.key}=${it.value}")
+            properties
+                .filter { it.value != null }
+                .map { it.key to it.value.toString().escapeLF() }
+                .forEach {
+                    if (it.second.isNotBlank()) {
+                        appendLine("${it.first}=${it.second}")
+                    }
                 }
-            }
             this.toString()
         }
         file.writeText(fileContent)

@@ -12,11 +12,11 @@ class GitLogPropertiesProvider(
             ?.let {
                 mapOf(
                     GIT_COMMIT_ID to it.name,
-                    GIT_COMMIT_SIGNED to (it.rawGpgSignature != null).toString(),
+                    GIT_COMMIT_SIGNED to (it.rawGpgSignature != null),
                     GIT_COMMIT_ID_ABBREV to it.name.substring(0, 7),
                     GIT_COMMIT_MESSAGE_FULL to it.fullMessage.trim(),
                     GIT_COMMIT_MESSAGE_SHORT to it.shortMessage,
-                    GIT_COMMIT_TIME to Instant.ofEpochSecond(it.commitTime.toLong()).toString(),
+                    GIT_COMMIT_TIME to Instant.ofEpochSecond(it.commitTime.toLong()),
                     GIT_COMMIT_USER_EMAIL to it.authorIdent.emailAddress,
                     GIT_COMMIT_USER_NAME to it.authorIdent.name,
                 )

@@ -6,12 +6,8 @@ class GitPropertiesProviderChain private constructor(
     override fun get(): Map<String, Any?> {
         return providers.flatMap {
             it.get().entries
-        }.filter {
-            it.value != null
         }.map {
             it.toPair()
-        }.sortedBy {
-            it.first
         }.toMap()
     }
 
