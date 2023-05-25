@@ -10,6 +10,7 @@ import java.io.File
 
 class GitPropertiesPluginFunctionalTest : StringSpec({
 
+    val testKitDir: File = tempdir()
 
     val testProjectDir: File = tempdir()
 
@@ -23,19 +24,34 @@ class GitPropertiesPluginFunctionalTest : StringSpec({
         )
     }
 
-    val gitRepository = TestGitRepository(testProjectDir)
+    val gitRepository = TestGitRepository(testProjectDir).also {
+        it.addCommit()
+    }
 
-    val commit = gitRepository.addCommit()
     "apply plugin and generate properties" {
 
-        val build = GradleRunner.create()
+        val runner = GradleRunner.create()
+            .withTestKitDir(testKitDir)
             .withProjectDir(testProjectDir)
-            .withArguments("generateGitProperties")
             .withDebug(true) // enabled for test coverage
             .withPluginClasspath()
-            .build()
 
-        build.task(":generateGitProperties")?.outcome shouldBe TaskOutcome.SUCCESS
+        runner.withArguments("--build-cache", "generateGitProperties")
+            .build().task(":generateGitProperties")?.outcome shouldBe TaskOutcome.SUCCESS
+
+        runner.withArguments("--build-cache", "generateGitProperties")
+            .build().task(":generateGitProperties")?.outcome shouldBe TaskOutcome.UP_TO_DATE
+
+        File(testProjectDir, "build").deleteRecursively()
+
+        runner.withArguments("--build-cache", "generateGitProperties")
+            .build().task(":generateGitProperties")?.outcome shouldBe TaskOutcome.FROM_CACHE
+
+        //add a new commit to invalidate cache
+        gitRepository.addCommit()
+
+        runner.withArguments("--build-cache", "generateGitProperties")
+            .build().task(":generateGitProperties")?.outcome shouldBe TaskOutcome.SUCCESS
 
         File(testProjectDir, "build/resources/main/git.properties").exists() shouldBe true
     }
