@@ -5,9 +5,6 @@ on:
   push:
     tags:
       - v*
-  # TODO REMOVE (JUST FOR TESTING)
-  pull_request:
-    branches: [ main ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -34,4 +31,4 @@ jobs:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
         run: |
-          ./gradlew publishPlugins --info -Dgradle.publish.key=$GRADLE_PLUGIN_PUBLISH_KEY -Dgradle.publish.secret=$GRADLE_PLUGIN_PUBLISH_SECRET
+          ./gradlew publishPlugins -Dgradle.publish.key=$GRADLE_PLUGIN_PUBLISH_KEY -Dgradle.publish.secret=$GRADLE_PLUGIN_PUBLISH_SECRET
