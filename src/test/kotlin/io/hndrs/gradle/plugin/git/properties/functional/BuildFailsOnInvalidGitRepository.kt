@@ -1,15 +1,14 @@
-package io.hndrs.gradle.plugin.git.properties
+package io.hndrs.gradle.plugin.git.properties.functional
 
+import io.hndrs.gradle.plugin.git.properties.TestGitRepository
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempdir
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.TaskOutcome
 import java.io.File
 
 
-class GitPropertiesPluginFunctionalTest : StringSpec({
+class BuildFailsOnInvalidGitRepository : StringSpec({
 
     var testKitDir: File = tempdir()
 
@@ -17,54 +16,16 @@ class GitPropertiesPluginFunctionalTest : StringSpec({
 
     var buildFile = File(testProjectDir, "build.gradle.kts")
 
-    var gitRepository = TestGitRepository(testProjectDir)
 
 
     beforeAny {
         testKitDir = tempdir()
         testProjectDir = tempdir()
         buildFile = File(testProjectDir, "build.gradle.kts")
-        gitRepository = TestGitRepository(testProjectDir)
-    }
-
-    "apply plugin and generate properties" {
-        buildFile.writeText(
-            """
-                plugins {
-                    id("io.hndrs.git-properties")
-                }
-            """.trimIndent()
-        )
-
-        // add first commit
-        gitRepository.addCommit()
-        val runner = GradleRunner.create()
-            .withTestKitDir(testKitDir)
-            .withProjectDir(testProjectDir)
-            .withDebug(true) // enabled for test coverage
-            .withPluginClasspath()
-
-        runner.withArguments("--build-cache", "generateGitProperties")
-            .build().task(":generateGitProperties")?.outcome shouldBe TaskOutcome.SUCCESS
-
-        runner.withArguments("--build-cache", "generateGitProperties")
-            .build().task(":generateGitProperties")?.outcome shouldBe TaskOutcome.UP_TO_DATE
-
-        File(testProjectDir, "build").deleteRecursively()
-
-        runner.withArguments("--build-cache", "generateGitProperties")
-            .build().task(":generateGitProperties")?.outcome shouldBe TaskOutcome.FROM_CACHE
-
-        //add a new commit to invalidate cache
-        gitRepository.addCommit()
-
-        runner.withArguments("--build-cache", "generateGitProperties")
-            .build().task(":generateGitProperties")?.outcome shouldBe TaskOutcome.SUCCESS
-
-        File(testProjectDir, "build/resources/main/git.properties").exists() shouldBe true
     }
 
     "build fails when git repository is not in valid state" {
+        TestGitRepository(testProjectDir) // creates .git folder
         buildFile.writeText(
             """
                 plugins {
@@ -87,6 +48,7 @@ class GitPropertiesPluginFunctionalTest : StringSpec({
     }
 
     "build does not fail when git repository is not in valid state and `stopBuildOnFailure` is set to false" {
+        TestGitRepository(testProjectDir) // creates .git folder
         buildFile.writeText(
             """
                 import io.hndrs.gradle.plugin.git.properties.GenerateGitPropertiesTask

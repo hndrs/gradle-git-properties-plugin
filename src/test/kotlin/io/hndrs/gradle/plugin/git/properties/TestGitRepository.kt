@@ -19,4 +19,13 @@ class TestGitRepository(rootDir: File) {
             )
             .setSign(false)
             .setMessage("My Message").call()
+
+    fun changeGitConfigUser(value: String) = git.repository.config
+        .also {
+            it.load()
+            it.setString("user", null, "name", value)
+            it.save()
+        }
+
+
 }
