@@ -3,6 +3,7 @@ package io.hndrs.gradle.plugin.git.properties
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.engine.spec.tempdir
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import java.io.File
@@ -10,26 +11,33 @@ import java.io.File
 
 class GitPropertiesPluginFunctionalTest : StringSpec({
 
-    val testKitDir: File = tempdir()
+    var testKitDir: File = tempdir()
 
-    val testProjectDir: File = tempdir()
+    var testProjectDir: File = tempdir()
 
-    File(testProjectDir, "build.gradle.kts").apply {
-        writeText(
+    var buildFile = File(testProjectDir, "build.gradle.kts")
+
+    var gitRepository = TestGitRepository(testProjectDir)
+
+
+    beforeAny {
+        testKitDir = tempdir()
+        testProjectDir = tempdir()
+        buildFile = File(testProjectDir, "build.gradle.kts")
+        gitRepository = TestGitRepository(testProjectDir)
+    }
+
+    "apply plugin and generate properties" {
+        buildFile.writeText(
             """
                 plugins {
                     id("io.hndrs.git-properties")
                 }
-                """.trimIndent()
+            """.trimIndent()
         )
-    }
 
-    val gitRepository = TestGitRepository(testProjectDir).also {
-        it.addCommit()
-    }
-
-    "apply plugin and generate properties" {
-
+        // add first commit
+        gitRepository.addCommit()
         val runner = GradleRunner.create()
             .withTestKitDir(testKitDir)
             .withProjectDir(testProjectDir)
@@ -54,5 +62,54 @@ class GitPropertiesPluginFunctionalTest : StringSpec({
             .build().task(":generateGitProperties")?.outcome shouldBe TaskOutcome.SUCCESS
 
         File(testProjectDir, "build/resources/main/git.properties").exists() shouldBe true
+    }
+
+    "build fails when git repository is not in valid state" {
+        buildFile.writeText(
+            """
+                plugins {
+                    id("io.hndrs.git-properties")
+                }
+            """.trimIndent()
+        )
+
+        val runner = GradleRunner.create()
+            .withTestKitDir(testKitDir)
+            .withProjectDir(testProjectDir)
+            .withDebug(true) // enabled for test coverage
+            .withPluginClasspath()
+
+        val buildResult = runner
+            .withArguments("generateGitProperties")
+            .buildAndFail()
+
+        buildResult.output shouldContain "Execution failed for task ':generateGitProperties'."
+    }
+
+    "build does not fail when git repository is not in valid state and `stopBuildOnFailure` is set to false" {
+        buildFile.writeText(
+            """
+                import io.hndrs.gradle.plugin.git.properties.GenerateGitPropertiesTask
+                
+                plugins {
+                    id("io.hndrs.git-properties")
+                }
+                
+                tasks.withType(GenerateGitPropertiesTask::class.java) {
+                    stopBuildOnFailure.set(false)
+                }
+            """.trimIndent()
+        )
+
+        val runner = GradleRunner.create()
+            .withTestKitDir(testKitDir)
+            .withProjectDir(testProjectDir)
+            .withPluginClasspath()
+
+        val buildResult = runner
+            .withArguments("generateGitProperties")
+            .build()
+
+        buildResult.output shouldContain "Execution failed for task ':generateGitProperties' but continuing build (stopBuildOnFailure is set to false)"
     }
 })

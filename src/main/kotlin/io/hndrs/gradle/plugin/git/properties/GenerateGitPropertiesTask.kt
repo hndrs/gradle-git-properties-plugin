@@ -10,12 +10,15 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.TaskExecutionException
 import java.io.File
 import javax.inject.Inject
 
@@ -35,6 +38,12 @@ abstract class GenerateGitPropertiesTask @Inject constructor(
         set(File(DOT_GIT_DIRECTORY_PATH))
     }
 
+    @get:Input
+    val stopBuildOnFailure: Property<Boolean> = objectFactory.property(Boolean::class.java).apply {
+        set(true)
+    }
+
+
     /**
      * Output file of this given task defaults to `/build/main/resources/git.properties`
      */
@@ -45,7 +54,6 @@ abstract class GenerateGitPropertiesTask @Inject constructor(
     fun generateGitProperties() {
         runCatching {
             val git = Git.open(dotGitDirectory.asFile.get())
-
             val properties = GitPropertiesProviderChain.of(
                 GitBranchPropertiesProvider(git),
                 GitConfigPropertiesProvider(git),
@@ -58,7 +66,17 @@ abstract class GenerateGitPropertiesTask @Inject constructor(
             PropertiesFileWriter(properties).writeTo(output.asFile.get())
 
         }.onFailure {
-            throw it
+            if (stopBuildOnFailure.getOrElse(true)) {
+                throw TaskExecutionException(this, it)
+            } else {
+                logger.error(
+                    """
+                        Execution failed for task ':generateGitProperties' but continuing build (stopBuildOnFailure is set to false)
+                        > ${it.message}
+                    """.trimIndent()
+                )
+            }
+
         }
     }
 
