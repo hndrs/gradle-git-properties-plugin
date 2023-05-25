@@ -10,7 +10,7 @@ If you ask yourself "Why? there is already plugins out there that do this.", you
 
 This plugin was build specifically with the purpose of supporting
 gradles [configuration-cache](https://docs.gradle.org/8.1.1/userguide/configuration_cache.html) feature.
-If you don`t need this functionality it might be wiser to choose more mature plugins.
+If you don`t need this functionality, you might choose a more mature plugin.
 
 ## Using the Plugin
 
