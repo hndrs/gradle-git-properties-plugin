@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0]
+
 ### Added
 
 - resolution of the following git properties
@@ -23,4 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `git.build.user.name`
     - `git.build.user.email`
 - gradle `--configuration-cache` support
+- allows continuing build with `generateGitProperties --continue-on-error` option
 
+[unreleased]: https://github.com/hndrs/gradle-git-properties-plugin/compare/v1.0.0...HEAD
+
+[1.0.0]: https://github.com/hndrs/gradle-git-properties-plugin/compare/7a9a8b9114cea8ce50e2985abe293260b91a5eab...v1.0.0
