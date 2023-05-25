@@ -19,6 +19,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskExecutionException
+import org.gradle.api.tasks.options.Option
 import java.io.File
 import javax.inject.Inject
 
@@ -38,10 +39,10 @@ abstract class GenerateGitPropertiesTask @Inject constructor(
         set(File(DOT_GIT_DIRECTORY_PATH))
     }
 
+    @Option(option = "continue-on-error", description = "Continues build on failure ")
     @get:Input
-    val stopBuildOnFailure: Property<Boolean> = objectFactory.property(Boolean::class.java).apply {
-        set(true)
-    }
+    val continueOnError: Property<Boolean> = objectFactory.property(Boolean::class.java)
+        .convention(false)
 
 
     /**
@@ -52,6 +53,7 @@ abstract class GenerateGitPropertiesTask @Inject constructor(
 
     @TaskAction
     fun generateGitProperties() {
+        logger.error("Continue on failure $continueOnError")
         runCatching {
             val git = Git.open(dotGitDirectory.asFile.get())
             val properties = GitPropertiesProviderChain.of(
@@ -66,15 +68,15 @@ abstract class GenerateGitPropertiesTask @Inject constructor(
             PropertiesFileWriter(properties).writeTo(output.asFile.get())
 
         }.onFailure {
-            if (stopBuildOnFailure.getOrElse(true)) {
-                throw TaskExecutionException(this, it)
-            } else {
+            if (continueOnError.get()) {
                 logger.error(
                     """
-                        Execution failed for task ':generateGitProperties' but continuing build (stopBuildOnFailure is set to false)
+                        Execution failed for task ':generateGitProperties' but continuing build with --continue-on-error
                         > ${it.message}
                     """.trimIndent()
                 )
+            } else {
+                throw TaskExecutionException(this, it)
             }
 
         }

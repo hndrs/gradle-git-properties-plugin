@@ -47,18 +47,12 @@ class BuildFailsOnInvalidGitRepository : StringSpec({
         buildResult.output shouldContain "Execution failed for task ':generateGitProperties'."
     }
 
-    "build does not fail when git repository is not in valid state and `stopBuildOnFailure` is set to false" {
+    "build does not fail when git repository is not in valid state with --continue-on-failure" {
         TestGitRepository(testProjectDir) // creates .git folder
         buildFile.writeText(
             """
-                import io.hndrs.gradle.plugin.git.properties.GenerateGitPropertiesTask
-                
                 plugins {
                     id("io.hndrs.git-properties")
-                }
-                
-                tasks.withType(GenerateGitPropertiesTask::class.java) {
-                    stopBuildOnFailure.set(false)
                 }
             """.trimIndent()
         )
@@ -69,9 +63,9 @@ class BuildFailsOnInvalidGitRepository : StringSpec({
             .withPluginClasspath()
 
         val buildResult = runner
-            .withArguments("generateGitProperties")
+            .withArguments("generateGitProperties", "--continue-on-error")
             .build()
 
-        buildResult.output shouldContain "Execution failed for task ':generateGitProperties' but continuing build (stopBuildOnFailure is set to false)"
+        buildResult.output shouldContain "Execution failed for task ':generateGitProperties' but continuing build with --continue-on-error"
     }
 })

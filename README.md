@@ -1,4 +1,5 @@
-[![Coverage](https://img.shields.io/sonar/coverage/hndrs_gradle-git-properties-plugin?server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge)](https://sonarcloud.io/dashboard?id=hndrs_gradle-publishing-info-plugin)
+[![Maven metadata URL](https://img.shields.io/maven-metadata/v?color=green&label=GRADLE%20PLUGIN&metadataUrl=https%3A%2F%2Fplugins.gradle.org%2Fm2%2Fio%2Fhndrs%2Fgit-properties%2Fio.hndrs.git-properties.gradle.plugin%2Fmaven-metadata.xml&style=for-the-badge)](https://plugins.gradle.org/plugin/io.hndrs.git-properties)
+[![Coverage](https://img.shields.io/sonar/coverage/hndrs_gradle-git-properties-plugin?server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge)](https://sonarcloud.io/dashboard?id=hndrs_gradle-git-properties-plugin)
 [![Supported Java Version](https://img.shields.io/badge/Supported%20Java%20Version-17%2B-informational?style=for-the-badge)]()
 [![Sponsor](https://img.shields.io/static/v1?logo=GitHub&label=Sponsor&message=%E2%9D%A4&color=ff69b4&style=for-the-badge)](https://github.com/sponsors/marvinschramm)
 
@@ -21,7 +22,7 @@ plugins {
 }
 ```
 
-The Plugin registers a ```generateGitProperties``` task to the project
+The Plugin registers a ```generateGitProperties``` task to the project.
 
 #### GenerateProperties Task
 
@@ -33,7 +34,8 @@ If the project includes the Gradle-Java-Plugin the `generateGitProperties` task 
 When the task is not configured
 
 - it is assumed that a `.git` folder is present in the root of the project.
-- the build will fail when an error occurs during the properties generation
+- the build will fail when an error occurs during the properties generation unless the `--continue-on-error` option is
+  provided
 - the output file is `resources/main/git.properties`
 
 The task can be configured the following way
@@ -43,7 +45,7 @@ import io.hndrs.gradle.plugin.git.properties.GenerateGitPropertiesTask
 
 tasks.withType(GenerateGitPropertiesTask::class.java) {
     dotGitDirectory.set(File(".git"))
-    stopBuildOnFailure.set(true)
+    continueOnError.set(false)
     output.set(File("resources/main/git.properties"))
 }
 ```
