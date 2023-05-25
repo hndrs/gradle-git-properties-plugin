@@ -23,7 +23,7 @@ repositories {
     mavenCentral()
 }
 
-val tagList = listOf("git", "git properties", "gradle", "spring", "plugins", "kotlin", "configuration-cache")
+val tagList = listOf("git", "properties", "spring", "kotlin", "configuration-cache", "spring-boot")
 
 gradlePlugin {
     website.set("https://github.com/hndrs/gradle-git-properties-plugin")
