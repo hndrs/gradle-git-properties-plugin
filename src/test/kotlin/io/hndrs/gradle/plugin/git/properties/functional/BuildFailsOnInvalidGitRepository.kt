@@ -60,6 +60,7 @@ class BuildFailsOnInvalidGitRepository : StringSpec({
         val runner = GradleRunner.create()
             .withTestKitDir(testKitDir)
             .withProjectDir(testProjectDir)
+            .withDebug(true) // enabled for test coverage
             .withPluginClasspath()
 
         val buildResult = runner
