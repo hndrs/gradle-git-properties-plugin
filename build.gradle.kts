@@ -8,6 +8,7 @@ plugins {
     `kotlin-dsl`
     `maven-publish`
     jacoco
+    signing
     id("java-gradle-plugin")
     id("com.gradle.plugin-publish").version("1.2.0")
     kotlin("jvm")
@@ -36,6 +37,14 @@ gradlePlugin {
             description = "Generates Git properties and is compatible with gradles `configuration-cache`"
             tags.set(tagList)
         }
+    }
+}
+
+val signingKey: String? by project
+val signingPassword: String? by project
+if (signingKey != null && signingPassword != null) {
+    signing {
+        useInMemoryPgpKeys(groovy.json.StringEscapeUtils.unescapeJava(signingKey), signingPassword)
     }
 }
 

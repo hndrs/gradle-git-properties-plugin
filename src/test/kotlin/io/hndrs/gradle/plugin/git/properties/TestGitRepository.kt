@@ -7,8 +7,7 @@ import java.io.File
 class TestGitRepository(rootDir: File) {
 
     private val git = Git.init().setDirectory(rootDir).call()
-
-
+    
     fun addCommit() =
         git.commit()
             .setAllowEmpty(true)
@@ -26,6 +25,4 @@ class TestGitRepository(rootDir: File) {
             it.setString("user", null, "name", value)
             it.save()
         }
-
-
 }
