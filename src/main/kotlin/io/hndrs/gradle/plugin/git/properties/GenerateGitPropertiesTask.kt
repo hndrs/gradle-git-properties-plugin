@@ -1,20 +1,24 @@
 package io.hndrs.gradle.plugin.git.properties
 
-import io.hndrs.gradle.plugin.git.properties.data.BranchNameValueSource
-import io.hndrs.gradle.plugin.git.properties.data.BuildValueSource
-import io.hndrs.gradle.plugin.git.properties.data.LatestCommitValueSource
-import io.hndrs.gradle.plugin.git.properties.data.RemoteOriginValueSource
+import io.hndrs.gradle.plugin.git.properties.data.BuildHostPropertiesProvider
+import io.hndrs.gradle.plugin.git.properties.data.GitBranchPropertiesProvider
+import io.hndrs.gradle.plugin.git.properties.data.GitConfigPropertiesProvider
+import io.hndrs.gradle.plugin.git.properties.data.GitLogPropertiesProvider
+import io.hndrs.gradle.plugin.git.properties.data.GitPropertiesProviderChain
+import org.eclipse.jgit.api.Git
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.TaskExecutionException
 import java.io.File
 import javax.inject.Inject
 
@@ -22,7 +26,6 @@ import javax.inject.Inject
 @CacheableTask
 abstract class GenerateGitPropertiesTask @Inject constructor(
     private val objectFactory: ObjectFactory,
-    private val providerFactory: ProviderFactory
 ) : DefaultTask() {
 
     /**
@@ -35,6 +38,12 @@ abstract class GenerateGitPropertiesTask @Inject constructor(
         set(File(DOT_GIT_DIRECTORY_PATH))
     }
 
+    @get:Input
+    val stopBuildOnFailure: Property<Boolean> = objectFactory.property(Boolean::class.java).apply {
+        set(true)
+    }
+
+
     /**
      * Output file of this given task defaults to `/build/main/resources/git.properties`
      */
@@ -43,27 +52,32 @@ abstract class GenerateGitPropertiesTask @Inject constructor(
 
     @TaskAction
     fun generateGitProperties() {
-        val fileContent = StringBuilder().apply {
-            getProperties().forEach {
-                appendLine("${it.key}=${it.value}")
+        runCatching {
+            val git = Git.open(dotGitDirectory.asFile.get())
+            val properties = GitPropertiesProviderChain.of(
+                GitBranchPropertiesProvider(git),
+                GitConfigPropertiesProvider(git),
+                GitLogPropertiesProvider(git),
+                BuildHostPropertiesProvider(),
+            ).get().also {
+                git.close()
             }
-        }.toString()
 
-        output.asFile.get().run {
-            this.createNewFile()
-            writeText(fileContent)
+            PropertiesFileWriter(properties).writeTo(output.asFile.get())
+
+        }.onFailure {
+            if (stopBuildOnFailure.getOrElse(true)) {
+                throw TaskExecutionException(this, it)
+            } else {
+                logger.error(
+                    """
+                        Execution failed for task ':generateGitProperties' but continuing build (stopBuildOnFailure is set to false)
+                        > ${it.message}
+                    """.trimIndent()
+                )
+            }
+
         }
-    }
-
-    private fun getProperties(): Map<String, String> {
-        return listOf(
-            providerFactory.of(LatestCommitValueSource::class.java) {}.get(),
-            providerFactory.of(BranchNameValueSource::class.java) {}.get(),
-            providerFactory.of(RemoteOriginValueSource::class.java) {}.get(),
-            providerFactory.of(BuildValueSource::class.java) {}.get()
-        ).flatMap { it.entries }.map {
-            it.toPair()
-        }.toMap()
     }
 
     private fun gitPropertiesFileProperty(): RegularFileProperty {
@@ -77,3 +91,4 @@ abstract class GenerateGitPropertiesTask @Inject constructor(
         private const val DOT_GIT_DIRECTORY_PATH = ".git"
     }
 }
+
