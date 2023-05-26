@@ -53,7 +53,6 @@ abstract class GenerateGitPropertiesTask @Inject constructor(
 
     @TaskAction
     fun generateGitProperties() {
-        logger.error("Continue on failure $continueOnError")
         runCatching {
             val git = Git.open(dotGitDirectory.asFile.get())
             val properties = GitPropertiesProviderChain.of(
