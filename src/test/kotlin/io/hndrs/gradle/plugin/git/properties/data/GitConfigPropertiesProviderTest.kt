@@ -12,7 +12,7 @@ class GitConfigPropertiesProviderTest : StringSpec({
         every { repository.config } returns mockk(relaxed = true) {
             every { getString("user", null, "email") } returns "john.smith@gradlemail.com"
             every { getString("user", null, "name") } returns "John Smith"
-            every { getString("remote", "origin", "url") } returns "git@github.com:hndrs/gradle-git-properties-plugin.git"
+            every { getString("remote", "origin", "url") } returns "https://name:password@github.com/hndrs/gradle-git-properties-plugin.git"
         }
     }
 
@@ -22,7 +22,7 @@ class GitConfigPropertiesProviderTest : StringSpec({
         underTest.get() shouldBe mapOf(
             "git.build.user.email" to "john.smith@gradlemail.com",
             "git.build.user.name" to "John Smith",
-            "git.remote.origin.url" to "git@github.com:hndrs/gradle-git-properties-plugin.git"
+            "git.remote.origin.url" to "https://github.com/hndrs/gradle-git-properties-plugin.git"
         )
     }
 

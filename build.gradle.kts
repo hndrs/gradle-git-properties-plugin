@@ -17,7 +17,7 @@ plugins {
 }
 
 group = "io.hndrs.gradle"
-version = "1.0.0"
+version = "1.0.0-local"
 
 repositories {
     mavenCentral()

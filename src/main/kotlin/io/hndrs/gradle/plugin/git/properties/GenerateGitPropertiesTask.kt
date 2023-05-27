@@ -14,12 +14,14 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.api.tasks.options.Option
+import org.gradle.kotlin.dsl.property
 import java.io.File
 import javax.inject.Inject
 
@@ -44,6 +46,10 @@ abstract class GenerateGitPropertiesTask @Inject constructor(
     val continueOnError: Property<Boolean> = objectFactory.property(Boolean::class.java)
         .convention(false)
 
+    @get:Input
+    @get:Optional
+    @Option(option = "branch-name", description = "Provide branch name via cli")
+    val branchName: Property<String> = objectFactory.property(String::class)
 
     /**
      * Output file of this given task defaults to `/build/main/resources/git.properties`
@@ -56,7 +62,7 @@ abstract class GenerateGitPropertiesTask @Inject constructor(
         runCatching {
             val git = Git.open(dotGitDirectory.asFile.get())
             val properties = GitPropertiesProviderChain.of(
-                GitBranchPropertiesProvider(git),
+                GitBranchPropertiesProvider(git, branchName.orNull),
                 GitConfigPropertiesProvider(git),
                 GitLogPropertiesProvider(git),
                 BuildHostPropertiesProvider(),

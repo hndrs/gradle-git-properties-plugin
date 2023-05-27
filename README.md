@@ -52,6 +52,21 @@ tasks.withType(GenerateGitPropertiesTask::class.java) {
 
 > File (build.gradle.kts)
 
+#### Behaviour on CI environments
+
+As you may know, CI environments handle the git repository differently.
+This plugin handles the branch resolution for
+
+- Github Actions
+- Gitlab CI
+- Travis CI
+
+If you are using a different CI service you can provide the branch name via the `branch-name` option
+
+```bash
+./gradlew generateGitProperties --branch-name=$CI_SPECIFIC_ENV
+```
+
 #### Available Properties
 
 ```properties
