@@ -52,6 +52,7 @@ class GitBranchPropertiesProviderTest : StringSpec({
         every { EnvProvider.getEnv("TRAVIS") } returns null
         every { EnvProvider.getEnv("GITLAB_CI") } returns null
         every { EnvProvider.getEnv("CI") } returns "true"
+        every { EnvProvider.getEnv("GITHUB_HEAD_REF") } returns null
         every { EnvProvider.getEnv("GITHUB_REF_NAME") } returns "ref-main"
 
         underTest.get() shouldBe mapOf(

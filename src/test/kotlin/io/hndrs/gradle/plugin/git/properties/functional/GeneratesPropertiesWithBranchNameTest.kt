@@ -39,6 +39,7 @@ class GeneratesPropertiesWithBranchNameTest : StringSpec({
         // add first commit
         gitRepository.addCommit()
         val runner = GradleRunner.create()
+
             .withTestKitDir(testKitDir)
             .withProjectDir(testProjectDir)
             .withDebug(true) // enabled for test coverage
@@ -68,7 +69,6 @@ class GeneratesPropertiesWithBranchNameTest : StringSpec({
         val runner = GradleRunner.create()
             .withTestKitDir(testKitDir)
             .withProjectDir(testProjectDir)
-            .withDebug(true) // enabled for test coverage
             .withPluginClasspath()
 
         runner.withArguments("generateGitProperties")
