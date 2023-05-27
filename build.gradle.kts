@@ -17,7 +17,7 @@ plugins {
 }
 
 group = "io.hndrs.gradle"
-version = "1.0.0-local"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
@@ -38,6 +38,11 @@ gradlePlugin {
             tags.set(tagList)
         }
     }
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
 val signingKey: String? by project
