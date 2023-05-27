@@ -23,6 +23,9 @@ class GitBranchPropertiesProviderTest : StringSpec({
 
     "resolves git branch via git" {
         val underTest = GitBranchPropertiesProvider(git, null)
+        mockkObject(EnvProvider)
+        // to run tests on CI we need to make sure all return null
+        every { EnvProvider.getEnv(any()) } returns null
         underTest.get() shouldBe mapOf(
             "git.branch" to "git-main"
         )
@@ -31,6 +34,9 @@ class GitBranchPropertiesProviderTest : StringSpec({
     "resolves git branch for github actions via env GITHUB_HEAD_REF" {
         val underTest = GitBranchPropertiesProvider(git, null)
         mockkObject(EnvProvider)
+
+        every { EnvProvider.getEnv("TRAVIS") } returns null
+        every { EnvProvider.getEnv("GITLAB_CI") } returns null
         every { EnvProvider.getEnv("CI") } returns "true"
         every { EnvProvider.getEnv("GITHUB_HEAD_REF") } returns "head-ref-main"
 
@@ -42,6 +48,9 @@ class GitBranchPropertiesProviderTest : StringSpec({
     "resolves git branch for github actions via env GITHUB_REF_NAME" {
         val underTest = GitBranchPropertiesProvider(git, null)
         mockkObject(EnvProvider)
+
+        every { EnvProvider.getEnv("TRAVIS") } returns null
+        every { EnvProvider.getEnv("GITLAB_CI") } returns null
         every { EnvProvider.getEnv("CI") } returns "true"
         every { EnvProvider.getEnv("GITHUB_REF_NAME") } returns "ref-main"
 
@@ -53,6 +62,8 @@ class GitBranchPropertiesProviderTest : StringSpec({
     "resolves git branch for gitlab-ci via env CI_COMMIT_REF_NAME" {
         val underTest = GitBranchPropertiesProvider(git, null)
         mockkObject(EnvProvider)
+        every { EnvProvider.getEnv("TRAVIS") } returns null
+        every { EnvProvider.getEnv("CI") } returns null
         every { EnvProvider.getEnv("GITLAB_CI") } returns "true"
         every { EnvProvider.getEnv("CI_COMMIT_REF_NAME") } returns "gitlab-main"
 
@@ -64,6 +75,8 @@ class GitBranchPropertiesProviderTest : StringSpec({
     "resolves git branch for travis-ci via env TRAVIS_BRANCH" {
         val underTest = GitBranchPropertiesProvider(git, null)
         mockkObject(EnvProvider)
+        every { EnvProvider.getEnv("GITLAB_CI") } returns null
+        every { EnvProvider.getEnv("CI") } returns null
         every { EnvProvider.getEnv("TRAVIS") } returns "true"
         every { EnvProvider.getEnv("TRAVIS_BRANCH") } returns "travis-main"
 
