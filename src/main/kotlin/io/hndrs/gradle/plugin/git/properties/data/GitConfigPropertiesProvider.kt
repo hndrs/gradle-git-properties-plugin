@@ -1,6 +1,7 @@
 package io.hndrs.gradle.plugin.git.properties.data
 
 import org.eclipse.jgit.api.Git
+import java.net.URI
 
 class GitConfigPropertiesProvider(
     private val git: Git
@@ -13,9 +14,17 @@ class GitConfigPropertiesProvider(
             mapOf(
                 GIT_BUILD_USER_EMAIL to it.getString("user", null, "email"),
                 GIT_BUILD_USER_NAME to it.getString("user", null, "name"),
-                GIT_REMOTE_ORIGIN_URL to it.getString("remote", "origin", "url")
+                GIT_REMOTE_ORIGIN_URL to it.getString("remote", "origin", "url")?.sanitise()
             )
         }
+    }
+
+    private fun String.sanitise(): String? {
+        return runCatching {
+            URI(this).userInfo?.let {
+                this.replace(it, "").replace("@", "")
+            }
+        }.getOrDefault(this)
     }
 
     companion object {
