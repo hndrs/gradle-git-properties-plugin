@@ -23,8 +23,9 @@ class GitConfigPropertiesProvider(
         return runCatching {
             URI(this).userInfo?.let {
                 this.replace(it, "").replace("@", "")
-            }
-        }.getOrDefault(this)
+            } ?: this
+        }.getOrElse { null }
+
     }
 
     companion object {
