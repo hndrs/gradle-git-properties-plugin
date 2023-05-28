@@ -6,13 +6,13 @@
 # Gradle Git Properties
 
 This is a simple gradle plugin that can generate git properties via a `generateGitProperties` task.
-If you ask yourself "Why? there is already plugins out there that do this.", you are right.
+If you ask yourself "Why? there is already plugins out there that do this.". You are right!
 
 This plugin was build specifically with the purpose of supporting
 gradles [configuration-cache](https://docs.gradle.org/8.1.1/userguide/configuration_cache.html) feature.
 If you don`t need this functionality, you might choose a more mature plugin.
 
-## Using the Plugin
+### Using the Plugin
 
 Add the following dependency to your plugin block
 
@@ -22,14 +22,13 @@ plugins {
 }
 ```
 
+### GenerateProperties Task
+
 The Plugin registers a ```generateGitProperties``` task to the project.
-
-#### GenerateProperties Task
-
 If the project includes the Gradle-Java-Plugin the `generateGitProperties` task will be attached to the
-`classes`
+`classes` lifecycle task if the java plugin is present
 
-#### Default Configuration
+### Default Configuration
 
 When the task is not configured
 
@@ -38,7 +37,7 @@ When the task is not configured
   provided
 - the output file is `resources/main/git.properties`
 
-The task can be configured the following way
+The task can be configured the following way if the defaults are not applicable:
 
 ```kotlin
 import io.hndrs.gradle.plugin.git.properties.GenerateGitPropertiesTask
@@ -52,9 +51,9 @@ tasks.withType(GenerateGitPropertiesTask::class.java) {
 
 > File (build.gradle.kts)
 
-#### Behaviour on CI environments
+### Behaviour on CI environments
 
-As you may know, CI environments handle the git repository differently.
+As you may know, CI environments handle the git repository differently and probably only checkout detached HEADs
 This plugin handles the branch resolution for
 
 - Github Actions
